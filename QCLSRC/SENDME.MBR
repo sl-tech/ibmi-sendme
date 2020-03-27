@@ -1,0 +1,29 @@
+             PGM        PARM(&FILELIB  &EMAIL &SUBJ &TEXT)
+             DCL        VAR(&FILELIB) TYPE(*CHAR) LEN(20)
+             DCL        VAR(&LIB    ) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&FIL    ) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&EMAIL  ) TYPE(*CHAR) LEN(60)
+             DCL        VAR(&SUBJ   ) TYPE(*CHAR) LEN(60)
+             DCL        VAR(&TEXT   ) TYPE(*CHAR) LEN(120)
+             DCL        VAR(&IFS    ) TYPE(*CHAR) LEN(128)
+
+             CHGVAR     VAR(&FIL) VALUE(&FILELIB)
+             CHGVAR     VAR(&LIB) VALUE(%SST(&FILELIB 11 10))
+
+             CRTDIR     DIR('/tmp')
+             MONMSG     MSGID(CPFA0A0)
+
+             CHGVAR     VAR(&IFS) VALUE('/tmp/' || %TRIM(&FIL) || +
+                          '.csv')
+
+             CPYTOIMPF  FROMFILE(&LIB/&FIL) TOSTMF(&IFS) +
+                          MBROPT(*REPLACE) RCDDLM(*CR) +
+                          STRDLM(*NONE) RMVBLANK(*TRAILING) +
+                          ADDCOLNAM(*SYS)
+
+             SNDSMTPEMM RCP((&EMAIL)) SUBJECT(&SUBJ) NOTE(&TEXT) +
+                          ATTACH((&IFS *OCTET *TXT))
+
+             RMVLNK     OBJLNK(&IFS)
+
+             ENDPGM
